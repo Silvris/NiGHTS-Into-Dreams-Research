@@ -1,0 +1,156 @@
+//------------------------------------------------
+//--- 010 Editor v11.0.1 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//--------------------------------------------
+//Node information:
+//Each node is given a type at the start of the object
+//Node Data always ends with 0x1400, except for the final node (usually a type 1)
+//With this in mind, nodes can reuse data from other nodes, as seen in DATNIGHTS.bin
+
+
+local int currentObj;
+#include "NiGHTS-Into-Dreams TextureList.bt"
+typedef struct(uint value){
+    while((FTell() % value) != 0){
+        byte padding;
+    };
+}Alignment;
+
+typedef struct{
+    float x;
+    float y;
+    float z;
+}Vec3;
+typedef struct{
+    float x;
+    float y;
+    float z;
+    float w;
+}Vec4;
+
+typedef struct{
+    uint unkn1;
+    uint unkn2;
+    uint unkn3;
+    uint unkn4;
+}Type1;
+
+typedef struct{
+    uint unkn; //nodeDef?
+    Vec4 unknVec;
+    uint unknStart;
+    uint null;
+    Vec3 unkn3Vec;
+    uint unknEnding2;
+}Type3;
+
+typedef struct{
+    ushort itemType;
+    ushort unkn;
+    uint pointer;
+    ushort unkn2;
+    ushort unkn3;
+    ushort unkn4;//used by types 6 and 2 it seems, 0 as well
+    ushort unkn5;
+    //Type 0 - section end
+    //Type 1 - size 0x16
+    //Type 2 - unknown shared with Type 16
+    //Type 3 - Material?
+    //Type 6 - Texture/Material Reference 
+    //Type E - Mesh?
+}ObjectNode;
+
+typedef struct(uint count){
+    byte data[count];
+}UnknNode;
+
+int GetNextPointer(int i){
+    i++;
+    while(obj[currentObj].nodes[i].pointer == 0){
+        i++;
+    };
+    return obj[currentObj].nodes[i].pointer;
+};
+
+struct Object;
+struct Object{
+    local int fileStart = FTell();
+    uint evalFlags;//assumed name based off of NJTL, but not looking likely tbh
+    uint fileSize;
+    uint unknown2;
+    Vec4 bb;//I guess?
+    uint unknValue;
+    uint align[3];
+    uint nodeCount;
+    ObjectNode nodes[nodeCount];
+    for(i=0;i<nodeCount;i++){
+        switch(nodes[i].itemType){
+            case 0x1:
+                FSeek(fileStart+nodes[i].pointer);
+                Type1 type1Data;
+                break;
+            case 3:
+                FSeek(fileStart+nodes[i].pointer);
+                Type3 type3Data;
+                break;
+            default:
+                if(nodes[i].pointer){
+                    FSeek(fileStart+nodes[i].pointer);
+                    if(i==nodeCount-1){
+                        UnknNode nodeData(fileSize-nodes[i].pointer);
+                    }
+                    else{
+                        UnknNode nodeData((GetNextPointer(i))-(nodes[i].pointer));
+                    };
+                };
+                break;
+        };
+    };
+};
+
+typedef struct{
+    uint unkn1;
+    float unkn2;
+    int unkn3;
+    uint unkn4;
+}UnknInner;
+
+typedef struct{
+    uint main;
+    uint count;
+    uint null;
+    uint unkn;
+    UnknInner inners[count];
+    uint nulls[3];
+    short unkn2;
+    short unkn3;
+}UnknOuter;
+
+typedef struct{
+    uint count;
+    uint indexes[count];
+    for(i=0;i<count;i++){
+        UnknOuter outers[indexes[i]]<optimize=false>;
+    };
+}WeightData; //materials?
+
+while(ReadUInt() == 4096){
+    Object obj;
+    FSeek(obj[currentObj].fileStart+obj[currentObj].fileSize);
+    currentObj++;
+};
+//align to 512
+Alignment align(512)<hidden=true>;
+TextureList tl;
+//align to 256
+Alignment align(256)<hidden=true>;
+//WeightData unkn;
+byte data[FileSize()-FTell()];

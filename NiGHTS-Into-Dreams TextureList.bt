@@ -1,0 +1,64 @@
+//------------------------------------------------
+//--- 010 Editor v11.0.1 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+local int textureCount;
+local int i;
+typedef struct{
+    short dataType;//0x06 = texture Data (often in pairs), 0x00 file end
+    short unkn;
+    uint unkn2;
+    uint unkn3;
+    uint unkn4;
+    uint unkn5;
+    uint unkn6;
+    uint unkn7;
+    uint unkn8;
+    uint unkn9;
+    uint semiDataLength;//normally only works for the first file in the struct, but it only works at the uint length
+    uint64 eighty;
+    uint unkn11;
+    uint unkn10;
+    uint64 eightyone;
+    uint subWidth;
+    uint subHeight;
+    uint64 eightytwo;
+    uint unkn11;
+    uint unkn12;
+    uint64 eightythree;
+    uint unkn13;//seems to match sublength?
+    uint unkn14;
+    uint unkn15;
+    uint unkn16;
+    short subLength;//multiplied by 16
+    short unkn17;
+    uint unkn18;
+    uint unkn19;
+    uint unkn20;
+}TextureHeaderStruct;
+
+typedef struct(uint count){
+    byte file[count];
+}File;
+
+typedef struct{
+    local uint fileStart = FTell();
+    uint textureStart;
+    uint align[3];
+    while(ReadByte() != 0x00){
+        TextureHeaderStruct textures;
+        textureCount++;
+    };
+    FSeek(fileStart+textureStart);
+    for(i=0;i<textureCount;i++){
+        File texture(textures[i].subLength*16);
+    };
+}TextureList;
