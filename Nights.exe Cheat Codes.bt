@@ -1,0 +1,47 @@
+//------------------------------------------------
+//--- 010 Editor v11.0.1 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+typedef enum{
+    Select = 1,
+    Start = 8,
+    Up = 16,
+    Right = 32,
+    Down = 64,
+    Left = 128,
+    L2 = 256,
+    R2 = 512,
+    L1 = 1024,
+    R1 = 2048,
+    Triangle = 4096,
+    Cross = 8192,
+    Circle = 16384,
+    Square = 32768
+}ButtonEnum;
+
+typedef struct(uint count){
+    ButtonEnum button[count];
+}CheatCode;
+
+FSeek(3550392);
+CheatCode AllAccess(12);
+CheatCode ElliotCostume(7);
+CheatCode RealaCostume(12);
+CheatCode ClearCodes(8);
+CheatCode UnknCode1(12);
+CheatCode UnknCode2(6);
+CheatCode UnknCode3(6);
+CheatCode UnknCode4(7);
+CheatCode UnknCode5(15);
+CheatCode Acapella(8);
+FSeek(362B6Ch);
+CheatCode ClarisCostume(7);
+Printf("%x",3550392 - 362B6Ch);
