@@ -12,28 +12,94 @@
 //------------------------------------------------
 local int textureCount;
 local int i;
+
 typedef struct{
-    short dataType;//0x06 = texture Data (often in pairs), 0x00 file end
-    short unkn;
-    uint unkn2;
+    int NLOOP : 15;
+    int EOP : 1;
+    int unused : 16<hidden=true>;
+    int unused : 14<hidden=true>;
+    int EnablePRIM : 1;
+    int PRIMData : 11;
+    int DataFormat : 2;
+    int NREGS : 4;
+    struct regs{
+        local int reg;
+        for(reg=0;reg<16;reg++){
+            int Register : 4;
+        };
+    }Registers;
+}GIFtag;
+
+typedef enum<int>{
+    PSMCT32 = 0x0,
+    PSMCT24 = 0x01,
+    PSMCT16 = 0x2,
+    PSMCT16S = 0xA,
+    PSMT8 = 0x13,
+    PSMT4 = 0x14,
+    PSMT8H = 0x1B,
+    PSMT4HL = 0x24,
+    PSMT4HH = 0x2C,
+    PSMZ32 = 0x30,
+    PSMZ24 = 0x31,
+    PSMZ16 = 0x32,
+    PSMZ16S = 0x3A
+}StorageFormat;
+
+typedef struct{
+    int SBP : 14;//Source Buffer Base Pointer
+    int hidden : 2<hidden=true>;
+    int SBW : 6;//Source Buffer Width
+    int hidden : 2<hidden=true>;
+    StorageFormat SPSM : 6;//Source Pixel Storage Mode
+    int hidden : 2<hidden=true>;
+    int DBP : 14;//Destination Buffer Base Pointer
+    int hidden : 2<hidden=true>;
+    int DBW : 6;//Destination Buffer Width
+    int hidden : 2<hidden=true>;
+    StorageFormat DPSM : 6;//Destination Pixel Storage Mode
+    int hidden : 2<hidden=true>;
+}BITBLTBUFSTR;
+
+typedef struct{
+    int SSAX : 11;
+    int hidden : 5<hidden=true>;
+    int SSAY : 11;
+    int hidden : 5<hidden=true>;
+    int DSAX : 11;
+    int hidden : 5<hidden=true>;
+    int DSAY: 11;
+    int DIR : 2;//Pixel Transmission Order
+}TRXPOSSTR;
+
+typedef struct{
+    int subWidth :12;
+    int unused :20<hidden=true>;
+    int subHeight : 12;
+    int unused : 20<hidden=true>;
+}TRXREGSTR;
+
+typedef struct{
+    int XDIR : 2; //direction
+    int unused :30<hidden=true>;
+    int unused<hidden=true>;
+}TRXDIRSTR;
+
+typedef struct{
+
     uint unkn3;
     uint unkn4;
     uint unkn5;
     uint unkn6;
-    uint unkn7;
-    uint unkn8;
-    uint unkn9;
-    uint semiDataLength;//normally only works for the first file in the struct, but it only works at the uint length
-    uint64 eighty;
-    uint unkn11;
-    uint unkn10;
-    uint64 eightyone;
-    uint subWidth;
-    uint subHeight;
-    uint64 eightytwo;
-    uint unkn11;
-    uint unkn12;
-    uint64 eightythree;
+    GIFtag tag;
+    BITBLTBUFSTR bitbltbuf;
+    uint64 BITBLTBUF;
+    TRXPOSSTR trxpos;
+    uint64 TRXPOS;
+    TRXREGSTR trxreg;
+    uint64 TRXREG;//the game is directly referencing PS2 graphics registers here, what insanity
+    TRXDIRSTR trxdir;
+    uint64 TRXDIR;
     uint unkn13;//seems to match sublength?
     uint unkn14;
     uint unkn15;
@@ -57,6 +123,7 @@ typedef struct{
         TextureHeaderStruct textures;
         textureCount++;
     };
+    TextureHeaderStruct textureEnd;
     FSeek(fileStart+textureStart);
     for(i=0;i<textureCount;i++){
         File texture(textures[i].subLength*16);
